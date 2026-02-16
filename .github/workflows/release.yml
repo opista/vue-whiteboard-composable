@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run publish as dry-run (no actual publish)"
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: ${{ inputs.dry_run && 'Publish to NPM (dry-run)' || 'Publish to NPM' }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: NPM Publish
+        run: pnpm publish --access public --provenance --no-git-checks ${{ inputs.dry_run && '--dry-run' || '' }}
