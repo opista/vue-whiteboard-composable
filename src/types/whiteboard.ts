@@ -34,8 +34,8 @@ export interface HistoryRecord {
   type: 'line'
   /** Creation time (Unix epoch). */
   timestamp: number
-  /** The SVG path element(s) rendered on the canvas. */
-  data: SVGElement | SVGElement[]
+  /** The SVG path element rendered on the canvas. */
+  data: SVGElement
   /** The brush settings (color, size) used at the time of drawing. */
   brush: {
     /** The color of the stroke. */

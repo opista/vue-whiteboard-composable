@@ -101,7 +101,7 @@ export function useWhiteboard(
           )
 
         const node = path.node() as SVGElement
-        history.value.push({
+        const historyRecord: HistoryRecord = {
           id: record.id,
           type: record.type,
           timestamp: record.timestamp ?? Date.now(),
@@ -110,7 +110,8 @@ export function useWhiteboard(
             color: record.brush.color,
             size: record.brush.size,
           },
-        })
+        }
+        history.value.push(historyRecord)
       })
       currentIndex.value = history.value.length - 1
     }
@@ -124,7 +125,7 @@ export function useWhiteboard(
     if (!record) return
 
     if (record.type === 'line') {
-      const node = record.data as SVGElement
+      const node = record.data
       if (node && node.parentNode) {
         node.parentNode.removeChild(node)
       }
@@ -142,8 +143,7 @@ export function useWhiteboard(
     if (!record) return
 
     if (record.type === 'line') {
-      const node = record.data as SVGElement
-      svg?.node()?.appendChild(node)
+      svg?.node()?.appendChild(record.data)
     }
   }
 
@@ -225,7 +225,7 @@ export function useWhiteboard(
     if (!record) return
 
     if (record.type === 'line') {
-      const node = record.data as SVGElement
+      const node = record.data
       if (node && node.parentNode) {
         node.parentNode.removeChild(node)
       }
@@ -240,7 +240,7 @@ export function useWhiteboard(
 
   const serialize = (): SerializableRecord[] => {
     return history.value.map((record) => {
-      const node = record.data as SVGElement
+      const node = record.data
       const pathData = node.getAttribute('d') || ''
       return {
         id: record.id,
