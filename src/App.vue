@@ -1,113 +1,229 @@
 <template>
   <div class="app-container">
     <header class="header">
-      <h1>Vue Whiteboard Composable</h1>
-      <p>A simple, composable-powered whiteboard for your ideas.</p>
+      <div class="header-content">
+        <h1>
+          Vue Whiteboard Composable<span class="version">v{{ pkg.version }}</span>
+        </h1>
+        <p>A lightweight, headless Vue 3 composable for SVG-based whiteboard drawing.</p>
+        <div class="links">
+          <a
+            :href="`https://www.npmjs.com/package/${pkg.name}`"
+            target="_blank"
+            class="badge-link npm"
+          >
+            NPM
+          </a>
+          <a
+            :href="pkg.repository.url.replace('git+', '').replace('.git', '')"
+            target="_blank"
+            class="badge-link github"
+          >
+            GitHub
+          </a>
+        </div>
+      </div>
     </header>
 
-    <main class="main-content">
-      <div class="workspace">
-        <div class="whiteboard-wrapper">
-          <svg ref="svgRef" class="whiteboard"></svg>
+    <main class="workspace">
+      <div class="whiteboard-wrapper">
+        <svg
+          ref="svgRef"
+          class="whiteboard"
+          viewBox="0 0 800 600"
+          preserveAspectRatio="xMidYMid meet"
+        ></svg>
 
-          <div class="toolbar">
-            <div class="color-picker" role="group" aria-label="Color Palette">
-              <button v-for="c in colors" :key="c.value" class="color-btn" :class="{ active: color === c.value }"
-                :style="{ backgroundColor: c.value }" @click="color = c.value" :aria-label="c.name"
-                :title="c.name"></button>
-            </div>
+        <div class="toolbar">
+          <div class="color-picker" role="group" aria-label="Color Palette">
+            <button
+              v-for="c in colors"
+              :key="c.value"
+              class="color-btn"
+              :class="{ active: color === c.value }"
+              :style="{ backgroundColor: c.value }"
+              @click="color = c.value"
+              :aria-label="c.name"
+              :title="c.name"
+            ></button>
+          </div>
 
-            <div class="separator"></div>
+          <div class="separator"></div>
 
-            <div class="size-picker" role="group" aria-label="Brush Size">
-              <button v-for="s in sizes" :key="s.value" class="size-btn" :class="{ active: size === s.value }"
-                @click="size = s.value" :title="s.name">
-                <div class="size-preview" :style="{ width: s.previewSize + 'px', height: s.previewSize + 'px' }"></div>
-              </button>
-            </div>
+          <div class="size-picker" role="group" aria-label="Brush Size">
+            <button
+              v-for="s in sizes"
+              :key="s.value"
+              class="size-btn"
+              :class="{ active: size === s.value }"
+              @click="size = s.value"
+              :title="s.name"
+            >
+              <div
+                class="size-preview"
+                :style="{ width: s.previewSize + 'px', height: s.previewSize + 'px' }"
+              ></div>
+            </button>
+          </div>
 
-            <div class="separator"></div>
+          <div class="separator"></div>
 
-            <div class="actions">
-              <button class="icon-btn" @click="undo" :disabled="!canUndo" title="Undo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 7v6h6" />
-                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-                </svg>
-              </button>
-              <button class="icon-btn" @click="redo" :disabled="!canRedo" title="Redo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 7v6h-6" />
-                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
-                </svg>
-              </button>
-              <button class="icon-btn danger" @click="clear" title="Clear Board">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 6h18" />
-                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                </svg>
-              </button>
-              <button class="icon-btn primary" @click="saveImage" title="Save Image">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                  <polyline points="17 21 17 13 7 13 7 21" />
-                  <polyline points="7 3 7 8 15 8" />
-                </svg>
-              </button>
-            </div>
+          <div class="actions">
+            <button class="icon-btn" @click="undo" :disabled="!canUndo" title="Undo">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 7v6h6" />
+                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+              </svg>
+            </button>
+            <button class="icon-btn" @click="redo" :disabled="!canRedo" title="Redo">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 7v6h-6" />
+                <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" />
+              </svg>
+            </button>
+            <button class="icon-btn danger" @click="clear" title="Clear Board">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </button>
+            <button class="icon-btn primary" @click="saveImage" title="Save Image">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+            </button>
           </div>
         </div>
+      </div>
 
-        <div class="history-panel">
-          <div class="history-header">
-            <h3>History</h3>
-            <span class="badge">{{ history.length }}</span>
+      <div class="history-panel">
+        <div class="history-header">
+          <h3>History</h3>
+          <span class="badge">{{ history.length }}</span>
+        </div>
+        <div class="history-list">
+          <div class="history-item" :class="{ active: currentIndex === -1 }" @click="jumpTo(-1)">
+            <div class="history-icon start">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
+            </div>
+            <div class="history-content">
+              <span class="history-type">Empty Canvas</span>
+            </div>
           </div>
-          <div class="history-list">
-            <div class="history-item" :class="{ active: currentIndex === -1 }" @click="jumpTo(-1)">
-              <div class="history-icon start">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                </svg>
-              </div>
-              <div class="history-content">
-                <span class="history-type">Empty Canvas</span>
-              </div>
+          <div
+            v-for="(item, index) in history"
+            :key="item.id"
+            class="history-item"
+            :class="{ active: index === currentIndex }"
+            @click="jumpTo(index)"
+            @mouseenter="highlightRecord(index)"
+            @mouseleave="unhighlightRecord(index)"
+          >
+            <div class="history-icon draw">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m18 15-6-6-6 6" />
+              </svg>
             </div>
-            <div v-for="(item, index) in history" :key="item.id" class="history-item"
-              :class="{ active: index === currentIndex }" @click="jumpTo(index)" @mouseenter="highlightRecord(index)"
-              @mouseleave="unhighlightRecord(index)">
-              <div class="history-icon draw">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m18 15-6-6-6 6" />
-                </svg>
+            <div class="history-content">
+              <div class="history-title">
+                <span
+                  v-if="item.options"
+                  class="history-meta"
+                  :style="{ backgroundColor: item.options.color }"
+                  :title="'Color: ' + item.options.color"
+                ></span>
+                <span class="history-type capitalize">{{ item.type }}</span>
               </div>
-              <div class="history-content">
-                <div class="history-title">
-                  <span v-if="item.options" class="history-meta" :style="{ backgroundColor: item.options.color }"
-                    :title="'Color: ' + item.options.color"></span>
-                  <span class="history-type capitalize">{{ item.type }}</span>
-                </div>
-                <span class="history-time">
-                  {{ formatTime(item.timestamp) }}
-                  <span v-if="item.options"> · {{ item.options.size }}</span>
-                </span>
-              </div>
-              <button class="history-delete-btn" @click.stop="removeFromHistory(index)" title="Remove item">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
+              <span class="history-time">
+                {{ formatTime(item.timestamp) }}
+                <span v-if="item.options"> · {{ item.options.size }}</span>
+              </span>
             </div>
+            <button
+              class="history-delete-btn"
+              @click.stop="removeFromHistory(index)"
+              title="Remove item"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -127,12 +243,42 @@
         </div>
       </div>
     </main>
+
+    <footer class="footer">
+      <div class="features-grid">
+        <div class="feature-card">
+          <h3>🧩 Headless & Composable</h3>
+          <p>
+            Built as a Vue 3 composable (<code>useWhiteboard</code>), giving you full control over
+            the UI while handling the logic.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h3>⚡ SVG & D3.js</h3>
+          <p>
+            Leverages D3.js for efficient SVG manipulation, ensuring smooth drawing and scaling.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h3>↺ Undo / Redo</h3>
+          <p>Built-in history stack management with robust undo/redo capabilities.</p>
+        </div>
+        <div class="feature-card">
+          <h3>💾 Export to Image</h3>
+          <p>Easily export your whiteboard creations to PNG format.</p>
+        </div>
+      </div>
+      <p class="footer-note">
+        MIT Licensed • Created by <a href="https://github.com/metacurb" target="_blank">Metacurb</a>
+      </p>
+    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useWhiteboard } from './composables/useWhiteboard'
+import pkg from '../package.json'
 
 const colors = [
   { name: 'Black', value: '#212121' },
@@ -165,7 +311,7 @@ const {
   canRedo,
   history,
   currentIndex,
-  jumpTo
+  jumpTo,
 } = useWhiteboard(svgRef, {
   color,
   size,
@@ -213,7 +359,7 @@ body {
     Helvetica,
     Arial,
     sans-serif;
-  background-color: #f3f4f6;
+  background: radial-gradient(circle at 50% 0%, #eef2f6 0%, #dfe4ea 100%);
   color: #1f2937;
   -webkit-font-smoothing: antialiased;
 }
@@ -223,8 +369,10 @@ body {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  padding: 40px 20px;
-  background: radial-gradient(circle at 50% 0%, #eef2f6 0%, #dfe4ea 100%);
+  width: 100%;
+  margin: 0 auto;
+  padding: 60px 0;
+  max-width: 1000px;
 }
 
 .header {
@@ -237,22 +385,72 @@ body {
   font-weight: 700;
   color: #111827;
   letter-spacing: -0.025em;
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.version {
+  font-size: 0.875rem;
+  background: #e5e7eb;
+  color: #4b5563;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
 }
 
 .header p {
   color: #6b7280;
   font-size: 1.1rem;
-  margin: 0;
+  margin: 0 0 20px 0;
+}
+
+.links {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.badge-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.badge-link.npm {
+  background-color: #fff0f0;
+  color: #cc3534;
+  border: 1px solid #ffcdcd;
+}
+
+.badge-link.npm:hover {
+  background-color: #ffe6e6;
+}
+
+.badge-link.github {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+}
+
+.badge-link.github:hover {
+  background-color: #e5e7eb;
 }
 
 .workspace {
   display: flex;
   gap: 24px;
-  align-items: flex-start;
 }
 
 .whiteboard-wrapper {
+  flex: 1;
   position: relative;
   background: white;
   border-radius: 16px;
@@ -265,22 +463,25 @@ body {
 }
 
 .whiteboard {
-  width: 800px;
-  height: 600px;
+  width: 100%;
+  max-width: 800px;
+  height: 100%;
   touch-action: none;
   cursor: crosshair;
   background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
   background-size: 20px 20px;
+  display: block;
 }
 
 .toolbar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 16px 24px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
   background: #ffffff;
   border-top: 1px solid #f3f4f6;
+  flex-wrap: wrap;
 }
 
 .color-picker,
@@ -630,20 +831,9 @@ body {
 @media (max-width: 1100px) {
   .workspace {
     flex-direction: column;
-    align-items: center;
-  }
-
-  .history-panel {
-    width: 800px;
-    height: auto;
-    max-height: 300px;
-  }
-}
-
-@media (max-width: 850px) {
-  .whiteboard {
+    align-items: stretch;
     width: 100%;
-    height: 400px;
+    max-width: 800px;
   }
 
   .whiteboard-wrapper {
@@ -652,10 +842,35 @@ body {
 
   .history-panel {
     width: 100%;
+    height: 300px;
+  }
+}
+@media (max-width: 1100px) {
+  .app-container {
+    padding-right: 10px;
+    padding-left: 10px;
+    width: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .header h1 {
+    font-size: 1.75rem;
+    flex-wrap: wrap;
   }
 
-  .app-container {
-    padding: 20px;
+  .whiteboard {
+    aspect-ratio: 1 / 1;
+  }
+
+  .toolbar {
+    gap: 8px;
+    padding: 8px;
+    flex-direction: column;
+  }
+
+  .separator {
+    display: none;
   }
 }
 
@@ -699,5 +914,82 @@ body {
 
 .whiteboard path.highlighted {
   filter: drop-shadow(0 0 4px #000);
+}
+/* Footer & Features */
+.footer {
+  margin-top: 60px;
+  text-align: center;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.feature-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  text-align: left;
+  transition: transform 0.2s;
+}
+
+.feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+}
+
+.feature-card h3 {
+  font-size: 1.1rem;
+  margin: 0 0 8px 0;
+  color: #111827;
+}
+
+.feature-card p {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.feature-card code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #ec4899;
+}
+
+.footer-note {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.footer-note a {
+  color: #6b7280;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footer-note a:hover {
+  color: #111827;
+}
+
+@media (max-width: 1100px) {
+  .footer {
+    max-width: 800px;
+  }
+  .features-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 850px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

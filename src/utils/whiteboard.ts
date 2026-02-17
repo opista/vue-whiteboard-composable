@@ -1,8 +1,7 @@
 import { type WhiteboardOptions, defaults } from '@/composables/useWhiteboard'
 import { isRef, type Ref } from 'vue'
 
-export const resolveValue = <T>(value: Ref<T> | T): T =>
-  isRef(value) ? value.value : (value as T)
+export const resolveValue = <T>(value: Ref<T> | T): T => (isRef(value) ? value.value : (value as T))
 
 export const buildStyleString = (options: WhiteboardOptions) => {
   const color = resolveValue(options.color) ?? defaults.color

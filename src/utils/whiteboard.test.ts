@@ -28,7 +28,7 @@ describe('whiteboard utilities', () => {
       const styles = buildStyleString({
         color: '#ff0000',
         size: '10px',
-        linecap: 'butt'
+        linecap: 'butt',
       })
       expect(styles).toContain('stroke: #ff0000')
       expect(styles).toContain('stroke-width: 10px')
@@ -43,7 +43,7 @@ describe('whiteboard utilities', () => {
 
     it('merges lineStyles', () => {
       const styles = buildStyleString({
-        lineStyles: { 'stroke-dasharray': '5,5' }
+        lineStyles: { 'stroke-dasharray': '5,5' },
       })
       expect(styles).toContain('stroke-dasharray: 5,5')
     })

@@ -1,9 +1,6 @@
 import { curveBasis, drag, line, select, type Selection } from 'd3'
 import { computed, markRaw, ref, type Ref, watch, unref } from 'vue'
-import {
-  buildStyleString,
-  nodeToDataUrl,
-} from '@/utils/whiteboard'
+import { buildStyleString, nodeToDataUrl } from '@/utils/whiteboard'
 
 export interface WhiteboardOptions {
   /** Brush color. Can be a reactive Vue Ref or a static string. */
@@ -34,7 +31,7 @@ export interface HistoryRecord {
   id: string
   type: 'line'
   timestamp: number
-  data?: SVGElement | SVGElement[] 
+  data?: SVGElement | SVGElement[]
   options?: {
     color: string
     size: string
@@ -94,23 +91,23 @@ export function useWhiteboard(
           })
 
           event.on('end', () => {
-             activeLine!.attr('d', (d) => d3Line(d))
-             const node = activeLine!.node() as SVGElement
-             
-             const record: HistoryRecord = {
-               id: crypto.randomUUID(),
-               type: 'line',
-               timestamp: Date.now(),
-               data: markRaw(node),
-               options: {
-                   color: unref(options.color) || defaults.color,
-                   size: unref(options.size) || defaults.size
-               }
-             }
-             
-             history.value.push(record)
-             currentIndex.value++
-             activeLine = null
+            activeLine!.attr('d', (d) => d3Line(d))
+            const node = activeLine!.node() as SVGElement
+
+            const record: HistoryRecord = {
+              id: crypto.randomUUID(),
+              type: 'line',
+              timestamp: Date.now(),
+              data: markRaw(node),
+              options: {
+                color: unref(options.color) || defaults.color,
+                size: unref(options.size) || defaults.size,
+              },
+            }
+
+            history.value.push(record)
+            currentIndex.value++
+            activeLine = null
           })
         }),
     )
@@ -122,12 +119,12 @@ export function useWhiteboard(
     const record = history.value[currentIndex.value]
 
     if (!record) return
-    
+
     if (record.type === 'line') {
-       const node = record.data as SVGElement
-       if (node && node.parentNode) {
-         node.parentNode.removeChild(node)
-       }
+      const node = record.data as SVGElement
+      if (node && node.parentNode) {
+        node.parentNode.removeChild(node)
+      }
     }
 
     currentIndex.value--
@@ -155,15 +152,15 @@ export function useWhiteboard(
 
   const jumpTo = (index: number) => {
     if (index === currentIndex.value) return
-    
+
     if (index < currentIndex.value) {
-        while (currentIndex.value > index) {
-            undo()
-        }
+      while (currentIndex.value > index) {
+        undo()
+      }
     } else {
-        while (currentIndex.value < index) {
-            redo()
-        }
+      while (currentIndex.value < index) {
+        redo()
+      }
     }
   }
 
@@ -225,42 +222,42 @@ export function useWhiteboard(
     if (!record) return
 
     if (record.type === 'line') {
-        const node = record.data as SVGElement
-        if (node && node.parentNode) {
-            node.parentNode.removeChild(node)
-        }
+      const node = record.data as SVGElement
+      if (node && node.parentNode) {
+        node.parentNode.removeChild(node)
+      }
     }
 
     history.value.splice(index, 1)
-    
+
     if (index <= currentIndex.value) {
-        currentIndex.value--
+      currentIndex.value--
     }
   }
 
-  return { 
-      /** Undoes the last drawing action. */
-      undo, 
-      /** Redoes the last undone drawing action. */
-      redo, 
-      /** Clears the entire canvas and resets history. */
-      clear, 
-      /** 
-       * Exports the current whiteboard state as a PNG data URL. 
-       * Uses exportScale option for quality.
-       */
-      save, 
-      /** Removes a specific record from history by index and removes its element from SVG. */
-      removeFromHistory,
-      /** Reactive boolean indicating if undo is possible. */
-      canUndo, 
-      /** Reactive boolean indicating if redo is possible. */
-      canRedo,
-      /** Reactive array containing all history records. */
-      history,
-      /** The current index in history. -1 means empty, 0 is the first record. */
-      currentIndex,
-      /** Navigates to a specific point in history by replaying actions. */
-      jumpTo
+  return {
+    /** Undoes the last drawing action. */
+    undo,
+    /** Redoes the last undone drawing action. */
+    redo,
+    /** Clears the entire canvas and resets history. */
+    clear,
+    /**
+     * Exports the current whiteboard state as a PNG data URL.
+     * Uses exportScale option for quality.
+     */
+    save,
+    /** Removes a specific record from history by index and removes its element from SVG. */
+    removeFromHistory,
+    /** Reactive boolean indicating if undo is possible. */
+    canUndo,
+    /** Reactive boolean indicating if redo is possible. */
+    canRedo,
+    /** Reactive array containing all history records. */
+    history,
+    /** The current index in history. -1 means empty, 0 is the first record. */
+    currentIndex,
+    /** Navigates to a specific point in history by replaying actions. */
+    jumpTo,
   }
 }
