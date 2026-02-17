@@ -1,1 +1,5 @@
-export { useWhiteboard, type WhiteboardOptions } from './composables/useWhiteboard'
+export {
+  useWhiteboard,
+  type WhiteboardOptions,
+  type SerializableRecord,
+} from './composables/useWhiteboard'

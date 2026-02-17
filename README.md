@@ -11,6 +11,7 @@ No styles or UI. You provide the SVG element and optional options; the composabl
 - Undo & redo
 - Full history access & navigation
 - Export as PNG (base64)
+- **Serialization & Persistence** support
 
 ![Example of useWhiteboard in action](./public/example.png)
 
@@ -73,6 +74,7 @@ const {
     <button :disabled="!canRedo" @click="redo">Redo</button>
     <button @click="clear">Clear</button>
     <button @click="save().then((dataUrl) => console.log(dataUrl))">Save PNG</button>
+    <button @click="console.log(serialize())">Serialize</button>
 
     <!-- History Navigation -->
     <div class="history">
@@ -88,6 +90,26 @@ const {
     </div>
   </div>
 </template>
+```
+
+### Persistence Example
+
+You can easily persist the whiteboard state using `localStorage` or a database:
+
+```ts
+const { history, serialize } = useWhiteboard(svgRef, {
+  // Load initial state
+  initialState: JSON.parse(localStorage.getItem('drawing') || '[]'),
+})
+
+// Save whenever history changes
+watch(
+  history,
+  () => {
+    localStorage.setItem('drawing', JSON.stringify(serialize()))
+  },
+  { deep: true },
+)
 ```
 
 ## API
@@ -111,6 +133,7 @@ const {
 | `currentIndex`      | `Ref<number>`                        | Current index in the history array      |
 | `jumpTo`            | `(index: number) => void`            | Navigate to a specific state in history |
 | `removeFromHistory` | `(index: number) => void`            | Remove a specific record from history   |
+| `serialize`         | `() => SerializableRecord[]`         | Serialize history for storage           |
 
 ### Options (`WhiteboardOptions`)
 
@@ -123,6 +146,7 @@ const {
 | `linejoin`        | `'miter' \| 'round' \| 'bevel' \| 'miter-clip' \| 'arcs'` | `'round'`          | Line join shape                                                    |
 | `lineStyles`      | `Record<string, string>`                                  | `{}`               | Extra inline stroke/fill styles                                    |
 | `exportScale`     | `number`                                                  | `devicePixelRatio` | Scale factor for PNG export (e.g. `2` or `3` for print); minimum 1 |
+| `initialState`    | `SerializableRecord[]`                                    | `[]`               | Initial history to load on mount                                   |
 
 ## Contributing
 

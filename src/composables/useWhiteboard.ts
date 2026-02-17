@@ -17,6 +17,8 @@ export interface WhiteboardOptions {
   size?: Ref<string> | string
   /** Scale factor for PNG export (default: devicePixelRatio). Use e.g. 2 or 3 for print. */
   exportScale?: number
+  /** Initial state to populate the whiteboard with. */
+  initialState?: SerializableRecord[]
 }
 
 export const defaults = {
@@ -32,6 +34,17 @@ export interface HistoryRecord {
   type: 'line'
   timestamp: number
   data?: SVGElement | SVGElement[]
+  options?: {
+    color: string
+    size: string
+  }
+}
+
+export interface SerializableRecord {
+  id: string
+  type: 'line'
+  timestamp: number
+  pathData: string
   options?: {
     color: string
     size: string
@@ -111,6 +124,36 @@ export function useWhiteboard(
           })
         }),
     )
+
+    if (options.initialState && options.initialState.length > 0 && history.value.length === 0) {
+      options.initialState.forEach((record) => {
+        const path = svg!
+          .append('path')
+          .attr('class', 'line')
+          .attr('d', record.pathData)
+          .attr(
+            'style',
+            buildStyleString({
+              ...options,
+              color: record.options?.color ?? defaults.color,
+              size: record.options?.size ?? defaults.size,
+            }),
+          )
+
+        const node = path.node() as SVGElement
+        history.value.push({
+          id: record.id,
+          type: record.type,
+          timestamp: record.timestamp,
+          data: markRaw(node),
+          options: {
+            color: record.options?.color ?? defaults.color,
+            size: record.options?.size ?? defaults.size,
+          },
+        })
+      })
+      currentIndex.value = history.value.length - 1
+    }
   }
 
   const undo = () => {
@@ -235,6 +278,20 @@ export function useWhiteboard(
     }
   }
 
+  const serialize = (): SerializableRecord[] => {
+    return history.value.map((record) => {
+      const node = record.data as SVGElement
+      const pathData = node.getAttribute('d') || ''
+      return {
+        id: record.id,
+        type: record.type,
+        timestamp: record.timestamp,
+        pathData,
+        options: record.options,
+      }
+    })
+  }
+
   return {
     /** Undoes the last drawing action. */
     undo,
@@ -259,5 +316,7 @@ export function useWhiteboard(
     currentIndex,
     /** Navigates to a specific point in history by replaying actions. */
     jumpTo,
+    /** Serializes the current history into a JSON-compatible format. */
+    serialize,
   }
 }
