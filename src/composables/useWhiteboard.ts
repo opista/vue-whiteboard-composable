@@ -33,8 +33,8 @@ export interface HistoryRecord {
   id: string
   type: 'line'
   timestamp: number
-  data?: SVGElement | SVGElement[]
-  options?: {
+  data: SVGElement | SVGElement[]
+  options: {
     color: string
     size: string
   }
@@ -45,7 +45,7 @@ export interface SerializableRecord {
   type: 'line'
   timestamp?: number
   pathData: string
-  options?: {
+  options: {
     color: string
     size: string
   }
@@ -135,8 +135,8 @@ export function useWhiteboard(
             'style',
             buildStyleString({
               ...options,
-              color: record.options?.color ?? defaults.color,
-              size: record.options?.size ?? defaults.size,
+              color: record.options.color,
+              size: record.options.size,
             }),
           )
 
@@ -147,8 +147,8 @@ export function useWhiteboard(
           timestamp: record.timestamp ?? Date.now(),
           data: markRaw(node),
           options: {
-            color: record.options?.color ?? defaults.color,
-            size: record.options?.size ?? defaults.size,
+            color: record.options.color,
+            size: record.options.size,
           },
         })
       })
