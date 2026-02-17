@@ -2,54 +2,15 @@ import { curveBasis, drag, line, select, type Selection } from 'd3'
 import { computed, markRaw, ref, type Ref, watch, unref } from 'vue'
 import { buildStyleString, nodeToDataUrl } from '@/utils/whiteboard'
 
-export interface WhiteboardOptions {
-  /** Brush color. Can be a reactive Vue Ref or a static string. */
-  color?: Ref<string> | string
-  /** Background color of the SVG container. */
-  backgroundColor?: string
-  /** The shape of the end of the lines. Defaults to 'round'. */
-  linecap?: 'butt' | 'square' | 'round'
-  /** The shape of the corners where two lines meet. Defaults to 'round'. */
-  linejoin?: 'miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs'
-  /** Additional CSS styles for the stroke paths (e.g. blend mode). */
-  lineStyles?: Record<string, string>
-  /** Brush size (stroke-width). Can be a reactive Vue Ref or a static string. */
-  size?: Ref<string> | string
-  /** Scale factor for PNG export (default: devicePixelRatio). Use e.g. 2 or 3 for print. */
-  exportScale?: number
-  /** Initial state to populate the whiteboard with. */
-  initialState?: SerializableRecord[]
-}
+import {
+  WHITEBOARD_DEFAULTS,
+  type HistoryRecord,
+  type SerializableRecord,
+  type WhiteboardOptions,
+} from '@/types/whiteboard'
 
-export const defaults = {
-  backgroundColor: '#ffffff',
-  color: '#333333',
-  linecap: 'round',
-  linejoin: 'round',
-  size: '5px',
-} as const
+export { type HistoryRecord, type SerializableRecord, type WhiteboardOptions }
 
-export interface HistoryRecord {
-  id: string
-  type: 'line'
-  timestamp: number
-  data: SVGElement | SVGElement[]
-  options: {
-    color: string
-    size: string
-  }
-}
-
-export interface SerializableRecord {
-  id: string
-  type: 'line'
-  timestamp?: number
-  pathData: string
-  options: {
-    color: string
-    size: string
-  }
-}
 
 export function useWhiteboard(
   containerRef: Ref<SVGSVGElement | null>,
@@ -112,9 +73,9 @@ export function useWhiteboard(
               type: 'line',
               timestamp: Date.now(),
               data: markRaw(node),
-              options: {
-                color: unref(options.color) || defaults.color,
-                size: unref(options.size) || defaults.size,
+              brush: {
+                color: unref(options.color) || WHITEBOARD_DEFAULTS.color,
+                size: unref(options.size) || WHITEBOARD_DEFAULTS.size,
               },
             }
 
@@ -135,8 +96,8 @@ export function useWhiteboard(
             'style',
             buildStyleString({
               ...options,
-              color: record.options.color,
-              size: record.options.size,
+              color: record.brush.color,
+              size: record.brush.size,
             }),
           )
 
@@ -146,9 +107,9 @@ export function useWhiteboard(
           type: record.type,
           timestamp: record.timestamp ?? Date.now(),
           data: markRaw(node),
-          options: {
-            color: record.options.color,
-            size: record.options.size,
+          brush: {
+            color: record.brush.color,
+            size: record.brush.size,
           },
         })
       })
@@ -214,8 +175,8 @@ export function useWhiteboard(
     const height = containerRef.value.clientHeight
 
     const container = containerRef.value.cloneNode(true) as SVGElement
-    const linejoin = options.linejoin ?? defaults.linejoin
-    const linecap = options.linecap ?? defaults.linecap
+    const linejoin = options.linejoin ?? WHITEBOARD_DEFAULTS.linejoin
+    const linecap = options.linecap ?? WHITEBOARD_DEFAULTS.linecap
     container.querySelectorAll('path').forEach((path) => {
       path.setAttribute('stroke-linejoin', linejoin)
       path.setAttribute('stroke-linecap', linecap)
@@ -287,7 +248,7 @@ export function useWhiteboard(
         type: record.type,
         timestamp: record.timestamp,
         pathData,
-        options: record.options,
+        brush: record.brush,
       }
     })
   }

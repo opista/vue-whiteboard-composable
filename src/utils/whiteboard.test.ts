@@ -1,3 +1,4 @@
+import { WHITEBOARD_DEFAULTS } from '@/types/whiteboard'
 import { describe, it, expect } from 'vitest'
 import { ref } from 'vue'
 import { resolveValue, buildStyleString, toBase64 } from './whiteboard'
@@ -18,10 +19,10 @@ describe('whiteboard utilities', () => {
     it('builds a default style string', () => {
       const styles = buildStyleString({})
       expect(styles).toContain('fill: none')
-      expect(styles).toContain('stroke: #333333')
-      expect(styles).toContain('stroke-width: 5px')
-      expect(styles).toContain('stroke-linejoin: round')
-      expect(styles).toContain('stroke-linecap: round')
+      expect(styles).toContain(`stroke: ${WHITEBOARD_DEFAULTS.color}`)
+      expect(styles).toContain(`stroke-width: ${WHITEBOARD_DEFAULTS.size}`)
+      expect(styles).toContain(`stroke-linejoin: ${WHITEBOARD_DEFAULTS.linejoin}`)
+      expect(styles).toContain(`stroke-linecap: ${WHITEBOARD_DEFAULTS.linecap}`)
     })
 
     it('applies custom options', () => {

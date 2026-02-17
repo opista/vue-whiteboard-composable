@@ -148,6 +148,32 @@ watch(
 | `exportScale`     | `number`                                                  | `devicePixelRatio` | Scale factor for PNG export (e.g. `2` or `3` for print); minimum 1 |
 | `initialState`    | `SerializableRecord[]`                                    | `[]`               | Initial history to load on mount                                   |
 
+### Data Structures
+
+#### `HistoryRecord`
+
+The internal representation of a drawing action in the history stack.
+
+| Property    | Type                              | Description                                           |
+| ----------- | --------------------------------- | ----------------------------------------------------- |
+| `id`        | `string`                          | Unique identifier (UUID)                              |
+| `type`      | `'line'`                          | The type of mark (currently only lines are supported) |
+| `timestamp` | `number`                          | Creation time (Unix epoch)                            |
+| `data`      | `SVGElement`                      | The actual SVG path element                           |
+| `brush`     | `{ color: string, size: string }` | The brush settings used to create this mark           |
+
+#### `SerializableRecord`
+
+The JSON-compatible version of a record used for persistence and initial state.
+
+| Property    | Type                              | Description                                 |
+| ----------- | --------------------------------- | ------------------------------------------- |
+| `id`        | `string`                          | Unique identifier (UUID)                    |
+| `type`      | `'line'`                          | The type of mark                            |
+| `timestamp` | `number` (optional)               | Creation time                               |
+| `pathData`  | `string`                          | The SVG path data (`d` attribute)           |
+| `brush`     | `{ color: string, size: string }` | The brush settings used to create this mark |
+
 ## Contributing
 
 Issues and PRs welcome.

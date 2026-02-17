@@ -1,16 +1,16 @@
-import { type WhiteboardOptions, defaults } from '@/composables/useWhiteboard'
+import { WHITEBOARD_DEFAULTS, type WhiteboardOptions } from '@/types/whiteboard'
 import { isRef, type Ref } from 'vue'
 
 export const resolveValue = <T>(value: Ref<T> | T): T => (isRef(value) ? value.value : (value as T))
 
 export const buildStyleString = (options: WhiteboardOptions) => {
-  const color = resolveValue(options.color) ?? defaults.color
+  const color = resolveValue(options.color) ?? WHITEBOARD_DEFAULTS.color
   const styles: Record<string, string> = {
     fill: 'none',
     stroke: color,
-    'stroke-width': resolveValue(options.size) ?? defaults.size,
-    'stroke-linejoin': options.linejoin ?? defaults.linejoin,
-    'stroke-linecap': options.linecap ?? defaults.linecap,
+    'stroke-width': resolveValue(options.size) ?? WHITEBOARD_DEFAULTS.size,
+    'stroke-linejoin': options.linejoin ?? WHITEBOARD_DEFAULTS.linejoin,
+    'stroke-linecap': options.linecap ?? WHITEBOARD_DEFAULTS.linecap,
     ...options.lineStyles,
   }
   return Object.entries(styles)
