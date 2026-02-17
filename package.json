@@ -1,9 +1,9 @@
 {
   "name": "vue-whiteboard-composable",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/metacurb/vue-whiteboard-composable.git"
+    "url": "git+https://github.com/opista/vue-whiteboard-composable.git"
   },
   "description": "A lightweight Vue 3 composable for SVG-based whiteboard drawing with undo/redo and export support.",
   "keywords": [
@@ -16,9 +16,9 @@
     "d3"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/metacurb/vue-whiteboard-composable#readme",
+  "homepage": "https://github.com/opista/vue-whiteboard-composable#readme",
   "bugs": {
-    "url": "https://github.com/metacurb/vue-whiteboard-composable/issues"
+    "url": "https://github.com/opista/vue-whiteboard-composable/issues"
   },
   "private": false,
   "type": "module",
