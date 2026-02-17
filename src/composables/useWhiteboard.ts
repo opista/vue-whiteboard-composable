@@ -1,16 +1,22 @@
 import { curveBasis, drag, line, select, type Selection } from 'd3'
-import { computed, markRaw, ref, type Ref, watch } from 'vue'
+import { computed, markRaw, ref, type Ref, watch, unref } from 'vue'
 import {
   buildStyleString,
   nodeToDataUrl,
 } from '@/utils/whiteboard'
 
 export interface WhiteboardOptions {
+  /** Brush color. Can be a reactive Vue Ref or a static string. */
   color?: Ref<string> | string
+  /** Background color of the SVG container. */
   backgroundColor?: string
+  /** The shape of the end of the lines. Defaults to 'round'. */
   linecap?: 'butt' | 'square' | 'round'
+  /** The shape of the corners where two lines meet. Defaults to 'round'. */
   linejoin?: 'miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs'
+  /** Additional CSS styles for the stroke paths (e.g. blend mode). */
   lineStyles?: Record<string, string>
+  /** Brush size (stroke-width). Can be a reactive Vue Ref or a static string. */
   size?: Ref<string> | string
   /** Scale factor for PNG export (default: devicePixelRatio). Use e.g. 2 or 3 for print. */
   exportScale?: number
@@ -24,6 +30,16 @@ export const defaults = {
   size: '5px',
 } as const
 
+export interface HistoryRecord {
+  id: string
+  type: 'line'
+  timestamp: number
+  data?: SVGElement | SVGElement[] 
+  options?: {
+    color: string
+    size: string
+  }
+}
 
 export function useWhiteboard(
   containerRef: Ref<SVGSVGElement | null>,
@@ -31,14 +47,14 @@ export function useWhiteboard(
 ) {
   const d3Line = line().curve(curveBasis)
 
-  const undoStack = ref<SVGElement[]>([])
-  const redoStack = ref<SVGElement[]>([])
+  const history = ref<HistoryRecord[]>([])
+  const currentIndex = ref(-1)
 
   let svg: ReturnType<typeof select<SVGSVGElement, unknown>> | null = null
   let activeLine: Selection<SVGPathElement, [number, number][], null, undefined> | null = null
 
-  const canUndo = computed(() => undoStack.value.length > 0)
-  const canRedo = computed(() => redoStack.value.length > 0)
+  const canUndo = computed(() => currentIndex.value >= 0)
+  const canRedo = computed(() => currentIndex.value < history.value.length - 1)
 
   const clearSvg = () => {
     svg?.selectAll('*').remove()
@@ -60,8 +76,8 @@ export function useWhiteboard(
           [x, y],
         ])
         .on('start', (event) => {
-          if (redoStack.value.length > 0) {
-            redoStack.value = []
+          if (currentIndex.value < history.value.length - 1) {
+            history.value = history.value.slice(0, currentIndex.value + 1)
           }
 
           activeLine = svg!
@@ -78,50 +94,86 @@ export function useWhiteboard(
           })
 
           event.on('end', () => {
-            activeLine!.attr('d', (d) => d3Line(d))
-            const node = activeLine!.node() as SVGElement
-            undoStack.value.push(markRaw(node))
-            activeLine = null
+             activeLine!.attr('d', (d) => d3Line(d))
+             const node = activeLine!.node() as SVGElement
+             
+             const record: HistoryRecord = {
+               id: crypto.randomUUID(),
+               type: 'line',
+               timestamp: Date.now(),
+               data: markRaw(node),
+               options: {
+                   color: unref(options.color) || defaults.color,
+                   size: unref(options.size) || defaults.size
+               }
+             }
+             
+             history.value.push(record)
+             currentIndex.value++
+             activeLine = null
           })
         }),
     )
   }
 
   const undo = () => {
-    const node = undoStack.value.pop()
-    if (!node) return
+    if (!canUndo.value) return
 
-    if (node.parentNode) {
-      node.parentNode.removeChild(node)
+    const record = history.value[currentIndex.value]
+
+    if (!record) return
+    
+    if (record.type === 'line') {
+       const node = record.data as SVGElement
+       if (node && node.parentNode) {
+         node.parentNode.removeChild(node)
+       }
     }
-    redoStack.value.push(node)
+
+    currentIndex.value--
   }
 
   const redo = () => {
-    const node = redoStack.value.pop()
-    if (!node) return
+    if (!canRedo.value) return
 
-    svg?.node()?.appendChild(node)
-    undoStack.value.push(node)
+    currentIndex.value++
+    const record = history.value[currentIndex.value]
+
+    if (!record) return
+
+    if (record.type === 'line') {
+      const node = record.data as SVGElement
+      svg?.node()?.appendChild(node)
+    }
   }
 
   const clear = () => {
     clearSvg()
-    undoStack.value = []
-    redoStack.value = []
+    history.value = []
+    currentIndex.value = -1
+  }
+
+  const jumpTo = (index: number) => {
+    if (index === currentIndex.value) return
+    
+    if (index < currentIndex.value) {
+        while (currentIndex.value > index) {
+            undo()
+        }
+    } else {
+        while (currentIndex.value < index) {
+            redo()
+        }
+    }
   }
 
   const save = async (): Promise<string | undefined> => {
-    if (!undoStack.value.length || !containerRef.value) return
+    if (history.value.length === 0 || !containerRef.value) return
 
     const width = containerRef.value.clientWidth
     const height = containerRef.value.clientHeight
 
     const container = containerRef.value.cloneNode(true) as SVGElement
-    const clonedSvg = select(container)
-    clonedSvg.selectAll('*').remove()
-    undoStack.value.forEach((node) => clonedSvg.node()?.appendChild(node.cloneNode(true)))
-
     const linejoin = options.linejoin ?? defaults.linejoin
     const linecap = options.linecap ?? defaults.linecap
     container.querySelectorAll('path').forEach((path) => {
@@ -168,5 +220,47 @@ export function useWhiteboard(
     { immediate: true },
   )
 
-  return { undo, redo, clear, save, canUndo, canRedo }
+  const removeFromHistory = (index: number) => {
+    const record = history.value[index]
+    if (!record) return
+
+    if (record.type === 'line') {
+        const node = record.data as SVGElement
+        if (node && node.parentNode) {
+            node.parentNode.removeChild(node)
+        }
+    }
+
+    history.value.splice(index, 1)
+    
+    if (index <= currentIndex.value) {
+        currentIndex.value--
+    }
+  }
+
+  return { 
+      /** Undoes the last drawing action. */
+      undo, 
+      /** Redoes the last undone drawing action. */
+      redo, 
+      /** Clears the entire canvas and resets history. */
+      clear, 
+      /** 
+       * Exports the current whiteboard state as a PNG data URL. 
+       * Uses exportScale option for quality.
+       */
+      save, 
+      /** Removes a specific record from history by index and removes its element from SVG. */
+      removeFromHistory,
+      /** Reactive boolean indicating if undo is possible. */
+      canUndo, 
+      /** Reactive boolean indicating if redo is possible. */
+      canRedo,
+      /** Reactive array containing all history records. */
+      history,
+      /** The current index in history. -1 means empty, 0 is the first record. */
+      currentIndex,
+      /** Navigates to a specific point in history by replaying actions. */
+      jumpTo
+  }
 }

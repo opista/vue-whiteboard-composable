@@ -9,6 +9,7 @@ No styles or UI. You provide the SVG element and optional options; the composabl
 - Touch and pointer support (via d3-drag)
 - Reactive options: brush color, size, background, linecap/linejoin
 - Undo & redo
+- Full history access & navigation
 - Export as PNG (base64)
 
 ![Example of useWhiteboard in action](./public/example.png)
@@ -20,6 +21,19 @@ pnpm add vue-whiteboard-composable
 # or
 npm i vue-whiteboard-composable
 ```
+
+## Local Development
+
+If you'd like to try out the demo app locally, you can clone the repository and run the development server:
+
+```bash
+git clone https://github.com/opista/vue-whiteboard-composable.git
+cd vue-whiteboard-composable
+pnpm install
+pnpm dev
+```
+
+Visit `http://localhost:5173` to have a play with the whiteboard!
 
 ## Usage
 
@@ -34,7 +48,18 @@ const svgRef = ref<SVGSVGElement | null>(null)
 const color = ref('#333333')
 const size = ref('5px')
 
-const { undo, redo, clear, save, canUndo, canRedo } = useWhiteboard(svgRef, {
+const {
+  undo,
+  redo,
+  clear,
+  save,
+  canUndo,
+  canRedo,
+  history,
+  currentIndex,
+  jumpTo,
+  removeFromHistory,
+} = useWhiteboard(svgRef, {
   color,
   size,
   backgroundColor: '#ffffff',
@@ -48,6 +73,19 @@ const { undo, redo, clear, save, canUndo, canRedo } = useWhiteboard(svgRef, {
     <button :disabled="!canRedo" @click="redo">Redo</button>
     <button @click="clear">Clear</button>
     <button @click="save().then((dataUrl) => console.log(dataUrl))">Save PNG</button>
+
+    <!-- History Navigation -->
+    <div class="history">
+      <div
+        v-for="(item, index) in history"
+        :key="item.id"
+        :class="{ active: index === currentIndex }"
+        @click="jumpTo(index)"
+      >
+        {{ item.type }}
+        <button @click.stop="removeFromHistory(index)">x</button>
+      </div>
+    </div>
   </div>
 </template>
 ```
@@ -61,14 +99,18 @@ const { undo, redo, clear, save, canUndo, canRedo } = useWhiteboard(svgRef, {
 
 **Returns:**
 
-| Name      | Type                                 | Description                          |
-| --------- | ------------------------------------ | ------------------------------------ |
-| `undo`    | `() => void`                         | Remove the last drawn path           |
-| `redo`    | `() => void`                         | Restore the last undone path         |
-| `clear`   | `() => void`                         | Clear all paths and undo/redo stacks |
-| `save`    | `() => Promise<string \| undefined>` | Base64 PNG data URL of the drawing   |
-| `canUndo` | `ComputedRef<boolean>`               | Whether undo is available            |
-| `canRedo` | `ComputedRef<boolean>`               | Whether redo is available            |
+| Name                | Type                                 | Description                             |
+| ------------------- | ------------------------------------ | --------------------------------------- |
+| `undo`              | `() => void`                         | Remove the last drawn path              |
+| `redo`              | `() => void`                         | Restore the last undone path            |
+| `clear`             | `() => void`                         | Clear all paths and reset history       |
+| `save`              | `() => Promise<string \| undefined>` | Base64 PNG data URL of the drawing      |
+| `canUndo`           | `ComputedRef<boolean>`               | Whether undo is available               |
+| `canRedo`           | `ComputedRef<boolean>`               | Whether redo is available               |
+| `history`           | `Ref<HistoryRecord[]>`               | Array of all history records            |
+| `currentIndex`      | `Ref<number>`                        | Current index in the history array      |
+| `jumpTo`            | `(index: number) => void`            | Navigate to a specific state in history |
+| `removeFromHistory` | `(index: number) => void`            | Remove a specific record from history   |
 
 ### Options (`WhiteboardOptions`)
 
