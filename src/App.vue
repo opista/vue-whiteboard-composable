@@ -113,13 +113,13 @@
             </div>
             <div class="history-content">
               <div class="history-title">
-                <span class="history-meta" :style="{ backgroundColor: item.options.color }"
-                  :title="'Color: ' + item.options.color"></span>
+                <span class="history-meta" :style="{ backgroundColor: item.brush.color }"
+                  :title="'Color: ' + item.brush.color"></span>
                 <span class="history-type capitalize">{{ item.type }}</span>
               </div>
               <span class="history-time">
                 {{ formatTime(item.timestamp) }}
-                <span> · {{ item.options.size }}</span>
+                <span> · {{ item.brush.size }}</span>
               </span>
             </div>
             <button class="history-delete-btn" @click.stop="removeFromHistory(index)" title="Remove item">
