@@ -43,7 +43,7 @@ export interface HistoryRecord {
 export interface SerializableRecord {
   id: string
   type: 'line'
-  timestamp: number
+  timestamp?: number
   pathData: string
   options?: {
     color: string
@@ -144,7 +144,7 @@ export function useWhiteboard(
         history.value.push({
           id: record.id,
           type: record.type,
-          timestamp: record.timestamp,
+          timestamp: record.timestamp ?? Date.now(),
           data: markRaw(node),
           options: {
             color: record.options?.color ?? defaults.color,
